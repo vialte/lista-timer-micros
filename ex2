@@ -1,0 +1,33 @@
+#include "stm32g0xx.h"
+/*2)Exercício 2 : Altere o exercício 1 para que a frequência da piscada seja
+função de uma entrada E. Quando E estiver em nivel alto, o led pisca a 2 Hz,
+caso contrário pisca a 7 Hz. O led é ativo em HIGH e conectado ao PB0. A
+entrada E será feita através do pino PC1. Utilize o TIM10.*/
+
+main(){
+ 	RCC->IOPENR=0x3f;//liga clock
+	GPIOA->MODER=0x28000000;
+
+	GPIOC->MODER=0X00;//botao
+
+	GPIOB->MODER=0x01;//led
+	RCC->APBENR1=0x20;
+
+	TIM7->ARR=999;
+	TIM7->CR1 |= 0x01;
+
+	while(1){
+		//se o estado logico for alto
+		if(GPIOC->IDR & 0b10)== 0b10){
+			//vai faze a freq de 2hz
+			TIM7->PSC=3999;
+
+		}else{
+			TIM7->PSC=1119;
+}
+		if(TIM7->SR= 0x1){
+			GPIOB->ODR ^= 0X01;
+			TIM7->SR &=~ 0X01;
+		    }
+		}
+    }
