@@ -1,0 +1,68 @@
+
+#include "stm32g0xx.h"
+
+/*Exercício 4 :
+Monte dois conjuntos de 3 leds, um verde, um amarelo e um vermelho, nas
+posições de um semáforo (se não tiveres as cores, não importa.).
+Desenvolva um programa de controle para este semáforo de dois tempos. O
+tempo de verde/vermelho deve ser de 700 ms e o tempo de amarelo aceso é
+200ms. Faça a sequência Vd → Vd/Am → Vm */
+
+int main() {
+    RCC->IOPENR = 0x3f;
+    GPIOA->MODER = 0x28000000;
+    RCC->APBENR1 = 0x20;
+
+    GPIOB->MODER = 0x15; // pb0, pb1, pb2
+    // vd1   am1  vm1
+    GPIOC->MODER = 0x15; // pc0 , pc1, pc2
+    // vd2   am2   vm2
+
+    TIM7->PSC = 15999;
+    TIM7->ARR = 999;
+    // t=0,1s
+    TIM7->CR1 |= 0x01;
+
+    // leds
+    int cont = 0;
+    // p contar quantas vezes vai passar os 100ms
+
+    GPIOB->ODR |= 0b1;       // liga o verde da sinaleira B
+    GPIOC->ODR |= 0b100;     // liga o vermelho da sinaleira C
+
+    while (1) {
+        if (TIM7->SR == 0b1) {
+            // se a flag estoura
+            TIM7->SR ^= 0b1;
+            // zera flag
+
+            cont++;
+        }
+
+        if (cont == 5) {
+            // ligar o amarelo de 200ms
+            GPIOB->ODR |= 0b10;
+        }
+        if (cont == 7) {
+            GPIOB->ODR &= ~0b1;      // desliga o verde B
+            GPIOB->ODR &= ~0b10;     // desliga o amarelo B
+            GPIOB->ODR |= 0b100;     // liga o vermelho do B
+
+            GPIOC->ODR &= ~0b100;    // desliga o vermelho
+            GPIOC->ODR &= ~0b1;      // liga o verde
+        }
+        if (cont == 12) {
+            GPIOC->ODR |= 0b10; // liga amarelo
+        }
+        if (cont == 14) {
+            GPIOB->ODR &= ~0b100; // desliga verml
+            GPIOB->ODR |= 0b1;    // ligo verde
+
+            GPIOC->ODR |= 0b100;  // liga verm
+            GPIOC->ODR &= ~0b1;   // desliga verde
+            GPIOC->ODR &= ~0b10;  // desliga amarelo
+
+            cont = 0;
+        }
+    }
+}
