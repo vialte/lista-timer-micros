@@ -1,0 +1,54 @@
+#include "stm32g0xx.h"
+
+/*Exercício 3 : Mensagem no led.
+O led de status de um equipamento é utilizado para sinalizar sua condição de
+operação, através de uma mensagem visual codificada como piscadas. O
+período da mensagem é de 1s e o tempo de cada piscada é de 100 ms,
+seguido por 100ms com o led apagado.
+As mensagens seguem a codificação dada pela tabela abaixo:*/
+main(){
+	RCC->IOPENR=0x3f;
+	GPIOA->MODER=0x28000000;
+	RCC->APBENR1=0x20;
+	
+	GPIOA->MODER=0x10000;//led pa8
+	GPIOB->MODER=0x00;//botoes pb3 pb4 pb5
+	
+	TIM7->PSC=15999;
+	TIM7->ARR=999;
+	//t=0,1s
+	TIM7->CR1 |= 0x01;
+	
+	int codigo;
+	//mascara pra pegar so os num de pb3,4,5
+	
+	int cont=0;
+	//conta quantas vezes o 100ms passa
+	
+	while(1){
+		codigo = (GPIOB->ODR & 0b111000)>>3;
+		
+		if(codigo ==0){
+			GPIOA->ODR |= 0x100;
+		}
+		
+		else if((TIM7->SR & 0x1)==0x1){	//a cada 100ms
+			//cada vez q o tempo passar
+		
+			cont ++;	//aumenta a contagem de estouros do timer
+			
+			if(cont < codigo*2-1){
+				//quando os num q eu to apertando no botao
+				//for menor q o num q precisa
+				
+				GPIOA->ODR ^= 0x1;
+				//ele troca o estado do led
+			}
+	    }
+		if(cont = 10){
+			//se ele piscar 5 vezes(max)
+			cont = 0;
+			//ele zera
+		}
+	}
+}
