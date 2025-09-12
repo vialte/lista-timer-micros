@@ -1,0 +1,77 @@
+#include "stm32g0xx.h"
+
+/*Exercício 5 :
+Acione os leds em sequência, começando de uma ponta da linha e
+percorrendo até a outra ponta, acionando somente um led. O led aceso deve
+“percorrer” a extensão da linha, indo de uma extremidade a outra e
+retornando. Seguir com este movimento indefinidamente. */
+
+int main() {
+    RCC->IOPENR = 0x3f;
+    GPIOA->MODER = 0x28000000;
+    RCC->APBENR1 = 0x20;
+
+    GPIOB->MODER = 0x555;//pb0-pb5
+
+
+    TIM7->PSC = 15999;
+    TIM7->ARR = 999;
+    // t=0,1s
+    TIM7->CR1 |= 0x01;
+
+
+    int cont = 0;
+    // p contar quantas vezes vai passar os 100ms
+
+while(1){
+	if(TIM7->SR == 0b1){
+	//se a flag estoura
+
+	TIM7->SR ^=0b1;
+	//vai repor flag
+	cont++;
+	//e contar 1 no cont
+	}
+
+	// ---- ida (0 → 5) ----
+
+	if(cont == 2){
+	GPIOB->ODR = 0b000001;  // PB0
+	}
+
+	if(cont == 4){
+		GPIOB->ODR = 0b000010;  // PB1
+	}
+    if(cont == 6){
+	    GPIOB->ODR = 0b000100;  // PB2
+	}
+	if(cont == 8){
+	    GPIOB->ODR = 0b001000;  // PB3
+	}
+	if(cont == 10){
+	     GPIOB->ODR = 0b010000;  // PB4
+	}
+	if(cont == 12){
+	     GPIOB->ODR = 0b100000;  // PB5
+	 }
+
+// ---- volta (5 → 0) ----
+	if(cont == 14){
+	    GPIOB->ODR = 0b010000;  // PB4
+	}
+	if(cont == 16){
+	    GPIOB->ODR = 0b001000;  // PB3
+	        }
+	if(cont == 18){
+	     GPIOB->ODR = 0b000100;  // PB2
+	 }
+	 if(cont == 20){
+	      GPIOB->ODR = 0b000010;  // PB1
+	 }
+	 if(cont == 22){
+	       GPIOB->ODR = 0b000001;  // PB0
+	  cont = 0;               // recomeça ciclo
+
+	 }
+   }
+}
