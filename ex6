@@ -1,0 +1,72 @@
+#include "stm32g0xx.h"
+
+/* Exercício 6:
+   Acione os leds em sequência, começando de uma ponta da linha
+   e percorrendo até a outra ponta, acionando o próximo led e
+   mantendo o anterior acionado. Ao preencher a linha, retornar
+   apagando os leds. Repetir indefinidamente.
+*/
+
+int main() {
+    // habilita clocks
+    RCC->IOPENR = 0x3f;
+    RCC->APBENR1 = 0x20;
+
+    // configura PB0–PB5 como saída
+    GPIOB->MODER = 0x555;
+
+    // Timer7 para ~100ms
+    TIM7->PSC = 15999;
+    TIM7->ARR = 999;
+    TIM7->CR1 |= 0x01;
+
+    int cont = 0;
+
+    while(1){
+        if(TIM7->SR & 0b1){
+            TIM7->SR ^= 0b1; // limpa flag
+            cont++;
+        }
+
+        // ---- ida: liga leds um a um ----
+        if(cont == 2){
+            GPIOB->ODR |= 0b000001; // liga PB0
+        }
+        if(cont == 4){
+            GPIOB->ODR |= 0b000010; // liga PB1
+        }
+        if(cont == 6){
+            GPIOB->ODR |= 0b000100; // liga PB2
+        }
+        if(cont == 8){
+            GPIOB->ODR |= 0b001000; // liga PB3
+        }
+        if(cont == 10){
+            GPIOB->ODR |= 0b010000; // liga PB4
+        }
+        if(cont == 12){
+            GPIOB->ODR |= 0b100000; // liga PB5
+        }
+
+        // ---- volta: apaga leds um a um ----
+        if(cont == 14){
+            GPIOB->ODR &= ~0b100000; // apaga PB5
+        }
+        if(cont == 16){
+            GPIOB->ODR &= ~0b010000; // apaga PB4
+        }
+        if(cont == 18){
+            GPIOB->ODR &= ~0b001000; // apaga PB3
+        }
+        if(cont == 20){
+            GPIOB->ODR &= ~0b000100; // apaga PB2
+        }
+        if(cont == 22){
+            GPIOB->ODR &= ~0b000010; // apaga PB1
+        }
+        if(cont == 24){
+            GPIOB->ODR &= ~0b000001; // apaga PB0
+            cont = 0;                // reinicia ciclo
+        }
+    }
+}
