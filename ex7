@@ -1,0 +1,47 @@
+#include "stm32g0xx.h"
+
+/*Exercício 7:
+Efeito visual: LEDs pares e ímpares piscando rapidamente.
+-Primeiro acende os ímpares (PB1, PC0, PC2, PB3).
+-Depois apaga e acende os pares (PB0, PB2, PC1, PB4).
+-Ficam alternando indefinidamente em alta velocidade.
+*/
+
+int main() {
+    //habilita clocks
+    RCC->IOPENR = 0x3f;
+    RCC->APBENR1 = 0x20;
+
+    //configura PB0,PB1,PB2,PB3,PB4 como saída
+    GPIOB->MODER = 0x155;
+    //configura PC0,PC1,PC2 como saída
+    GPIOC->MODER = 0x15;
+
+    //Timer7 mais rápido (~80 ms)
+    TIM7->PSC = 15999;
+    TIM7->ARR = 799; //~80 ms
+    TIM7->CR1 |= 0x01;
+
+    int estado = 0;
+
+    while(1){
+        if(TIM7->SR & 0b1){
+            TIM7->SR ^= 0b1; //limpa flag
+
+            if(estado == 0){
+                GPIOB->ODR = 0; //apaga PB
+                GPIOC->ODR = 0; //apaga PC
+                GPIOB->ODR |= (0b000010 | 0b01000); //PB1, PB3
+                GPIOC->ODR |= (0b001 | 0b100); //PC0, PC2
+                estado = 1;
+            }
+            else {
+                GPIOB->ODR = 0; //apaga PB
+                GPIOC->ODR = 0; //apaga PC
+                GPIOB->ODR |= (0b000001 | 0b000100 | 0b10000); //PB0, PB2, PB4
+                GPIOC->ODR |= (0b010); //PC1
+                estado = 0;
+            }
+        }
+    }
+}
